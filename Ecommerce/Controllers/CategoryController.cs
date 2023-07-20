@@ -65,7 +65,6 @@ namespace Ecommerce.Controllers
         [HttpGet, ActionName("Delete")]
         public IActionResult DeleteView(int? id)
         {
-
             if (id is null || id == 0)
                 return BadRequest();
 
