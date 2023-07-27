@@ -4,6 +4,7 @@ namespace Ecommerce.Domain.Interfaces
 {
     public interface IProductRepository : IRepository<Product>
     {
-        void Update(Product product);   
+        void Save();
+        void Update(Product product);  
     }
 }

@@ -9,34 +9,16 @@ namespace Ecommerce.Database.Repositories
     public class ProductRepository : Repository<Product>, IProductRepository
     {
         private readonly DbSet<Product> _productsSet;
+        private readonly ApplicationDbContext _db;
         public ProductRepository(ApplicationDbContext context) : base(context)
         {
-            _productsSet = context.Products;
+            _db = context;
+            _productsSet = _db.Products;
         }
 
-        public void Add(Product entity)
+        public void Save()
         {
-            _productsSet.Add(entity);
-        }
-
-        public Product Get(Expression<Func<Product, bool>> filter)
-        {
-            return _productsSet.FirstOrDefault(filter);
-        }
-
-        public IEnumerable<Product> GetAll()
-        {
-            return _productsSet.ToList();
-        }
-
-        public void Remove(Product entity)
-        {
-            _productsSet.Remove(entity);
-        }
-
-        public void RemoveRange(IEnumerable<Product> entities)
-        {
-            _productsSet.RemoveRange(entities);
+            _db.SaveChanges();
         }
 
         public void Update(Product product)
