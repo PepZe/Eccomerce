@@ -1,64 +1,72 @@
 ﻿using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Model;
+using Ecommerce.Domain.Model.ViewModel;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Ecommerce.Controllers
 {
     public class ProductController : Controller
     {
         private readonly IProductRepository _productRepository;
-
-        public ProductController(IProductRepository productRepository)
+        private readonly ICategoryRepository _categoryRepository;
+        public ProductController(IProductRepository productRepository, ICategoryRepository categoryRepository)
         {
             _productRepository = productRepository;
+            _categoryRepository = categoryRepository;
         }
 
         public IActionResult Index()
         {
             var products = _productRepository.GetAll();
+
             return View(products);
         }
 
         [HttpGet]
-        public IActionResult Create()
+        public IActionResult Upsert(int? id)
         {
-            return View();
+            var productView = new ProductView()
+            {
+                CategorySelectList = _categoryRepository.GetAll().Select(c => new SelectListItem()
+                {
+                    Text = c.Name,
+                    Value = c.Id.ToString()
+                })
+            };
+
+            if (id is not null && id != 0)
+            {
+                productView.Product = _productRepository.Get(p => p.Id == id);
+            }
+            else
+            {
+                productView.Product = new Product();
+            }
+
+
+            return View(productView);
         }
 
         [HttpPost]
-        public IActionResult Create(Product product)
+        public IActionResult Upsert(ProductView productView, IFormFile? file)
         {
             if (!ModelState.IsValid)
-                return BadRequest();
+            {
+                productView.CategorySelectList = _categoryRepository.GetAll().Select(c => new SelectListItem()
+                {
+                    Text = c.Name,
+                    Value = c.Id.ToString()
+                });
+                return View(productView);
+            }
 
-            _productRepository.Add(product);
+            _productRepository.Add(productView.Product);
             _productRepository.Save();
 
             return RedirectToAction("Index");
         }
 
-        [HttpGet]
-        public IActionResult Edit(int? id)
-        {
-            if (id is null)
-                return BadRequest();
-
-            var product = _productRepository.Get(p => p.Id == id);
-            if (product is null)
-                return NotFound();
-
-            return View(product);
-        }
-
-        [HttpPost]
-        public IActionResult Edit(Product product)
-        {
-            if (product is null)
-                return BadRequest();
-
-            _productRepository.Update(product);
-            return RedirectToAction("Index");
-        }
 
         [HttpGet("delete")]
         public IActionResult DeleteView(int? id)
