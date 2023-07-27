@@ -33,7 +33,8 @@ namespace Ecommerce.Controllers
             _categoryRepository.Add(category);
             _categoryRepository.Save();
             TempData["success"] = "Category was created";
-            return View("Index");
+
+            return RedirectToAction("Index");
         }
 
         [HttpGet]
