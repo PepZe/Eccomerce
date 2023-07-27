@@ -1,4 +1,4 @@
-﻿using Ecommerce.Database.Context;
+﻿using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Model;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,16 +6,16 @@ namespace Ecommerce.Controllers
 {
     public class CategoryController : Controller
     {
-        private readonly ApplicationDbContext _dbContext;
+        private readonly ICategoryRepository _categoryRepository;
 
-        public CategoryController(ApplicationDbContext dbContext)
+        public CategoryController(ICategoryRepository categoryRepository)
         {
-            _dbContext = dbContext;
+            _categoryRepository = categoryRepository;
         }
 
         public IActionResult Index()
         {
-            var categories = _dbContext.Categories.ToList();
+            var categories = _categoryRepository.GetAll();
             return View(categories);
         }
 
@@ -30,8 +30,8 @@ namespace Ecommerce.Controllers
             if (!ModelState.IsValid)
                 return View();
 
-            _dbContext.Categories.Add(category);
-            _dbContext.SaveChanges();
+            _categoryRepository.Add(category);
+            _categoryRepository.Save();
             TempData["success"] = "Category was created";
             return View("Index");
         }
@@ -42,7 +42,7 @@ namespace Ecommerce.Controllers
             if (id is null || id == 0)
                 return BadRequest();
 
-            var category = _dbContext.Categories.Find(id);
+            var category = _categoryRepository.Get(c => c.Id == id);
             if (category is null)
                 return NotFound();
 
@@ -55,8 +55,8 @@ namespace Ecommerce.Controllers
             if (!ModelState.IsValid)
                 return View();
 
-            _dbContext.Categories.Update(category);
-            _dbContext.SaveChanges();
+            _categoryRepository.Update(category);
+            _categoryRepository.Save();
             TempData["success"] = "Category was edited";
             return RedirectToAction("Index");
         }
@@ -69,7 +69,7 @@ namespace Ecommerce.Controllers
             if (id is null || id == 0)
                 return BadRequest();
 
-            var category = _dbContext.Categories.Find(id);
+            var category = _categoryRepository.Get(c => c.Id == id);
             if (category is null)
                 return NotFound();
 
@@ -82,12 +82,12 @@ namespace Ecommerce.Controllers
             if (id is null || id == 0)
                 return BadRequest();
 
-            var category = _dbContext.Categories.Find(id);
+            var category = _categoryRepository.Get(c => c.Id == id);
             if (category is null)
                 return NotFound();
 
-            _dbContext.Categories.Remove(category);
-            _dbContext.SaveChanges();
+            _categoryRepository.Remove(category);
+            _categoryRepository.Save();
             TempData["success"] = "Category was deleted";
             return View();
         }
