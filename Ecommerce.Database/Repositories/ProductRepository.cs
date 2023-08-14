@@ -2,7 +2,6 @@
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Model;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
 
 namespace Ecommerce.Database.Repositories
 {
@@ -23,6 +22,24 @@ namespace Ecommerce.Database.Repositories
 
         public void Update(Product product)
         {
+            var prodDto = _db.Products.FirstOrDefault(p => p.Id == product.Id);
+            if(prodDto == null)
+            {
+                prodDto.Title = product.Title;
+                prodDto.Description = product.Description;
+                prodDto.Price = product.Price;
+                prodDto.Price50 = product.Price50;
+                prodDto.Price100 = product.Price100;
+                prodDto.ISBN = product.ISBN;
+                prodDto.ListPrice = product.ListPrice;
+                prodDto.CategoryId = product.CategoryId;
+                prodDto.Author = product.Author;
+                if(product.ImageUrl != null)
+                {
+                    prodDto.ImageUrl = product.ImageUrl;
+                }
+            }
+
             _productsSet.Update(product);
         }
     }

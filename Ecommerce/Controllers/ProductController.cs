@@ -1,6 +1,7 @@
 ﻿using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Model;
 using Ecommerce.Domain.Model.ViewModel;
+using FileIO = System.IO.File;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -10,15 +11,19 @@ namespace Ecommerce.Controllers
     {
         private readonly IProductRepository _productRepository;
         private readonly ICategoryRepository _categoryRepository;
-        public ProductController(IProductRepository productRepository, ICategoryRepository categoryRepository)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly string WEB_ROOT_PATH;
+        public ProductController(IProductRepository productRepository, ICategoryRepository categoryRepository, IWebHostEnvironment webHostEnvironment)
         {
             _productRepository = productRepository;
             _categoryRepository = categoryRepository;
+            _webHostEnvironment = webHostEnvironment;
+            WEB_ROOT_PATH = _webHostEnvironment.WebRootPath;
         }
 
         public IActionResult Index()
         {
-            var products = _productRepository.GetAll();
+            var products = _productRepository.GetAll("Category");
 
             return View(products);
         }
@@ -51,6 +56,7 @@ namespace Ecommerce.Controllers
         [HttpPost]
         public IActionResult Upsert(ProductView productView, IFormFile? file)
         {
+
             if (!ModelState.IsValid)
             {
                 productView.CategorySelectList = _categoryRepository.GetAll().Select(c => new SelectListItem()
@@ -58,15 +64,51 @@ namespace Ecommerce.Controllers
                     Text = c.Name,
                     Value = c.Id.ToString()
                 });
+
+                TempData["error"] = "Entry data wrong";
                 return View(productView);
             }
 
-            _productRepository.Add(productView.Product);
+            if (file is not null && WEB_ROOT_PATH is not null)
+            {
+                var productImgFolder = @"images/product";
+                var productPath = $@"{WEB_ROOT_PATH}/{productImgFolder}";
+
+                DeleteProductImage(productView.Product.ImageUrl);
+
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+
+                using var fileStream = new FileStream(Path.Combine(productPath, fileName), FileMode.Create);
+                file.CopyTo(fileStream);
+
+
+                productView.Product.ImageUrl = $@"{productImgFolder}/{fileName}";
+            }
+
+            if (productView.Product.Id == 0)
+            {
+                _productRepository.Add(productView.Product);
+            }
+            else
+            {
+                _productRepository.Update(productView.Product);
+            }
+
             _productRepository.Save();
 
+            TempData["success"] = "Product was created";
             return RedirectToAction("Index");
         }
 
+        private void DeleteProductImage(string imageUrl)
+        {
+            if (!string.IsNullOrEmpty(imageUrl))
+            {
+                var currentImage = $@"{WEB_ROOT_PATH}/{imageUrl}";
+                if (FileIO.Exists(currentImage))
+                    FileIO.Delete(currentImage);
+            }
+        }
 
         [HttpGet("delete")]
         public IActionResult DeleteView(int? id)
@@ -79,22 +121,36 @@ namespace Ecommerce.Controllers
             if (productToDelete is null)
                 return NotFound();
 
-            return View(productToDelete);
+            return View("Delete", productToDelete);
         }
 
-        [HttpPost]
+        #region API Calls
+
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            var products = _productRepository.GetAll("Category").ToList();
+            return Json(new { data = products });
+        }
+
         public IActionResult Delete(int? id)
         {
-            if (id is null || id == 0)
+            if (!id.HasValue)
                 return BadRequest();
 
-            var productToBeDeleted = _productRepository.Get(p => p.Id == id);
-            if (productToBeDeleted is null)
-                return NotFound();
+            var productToDelete = _productRepository.Get(p => p.Id == id);
 
-            _productRepository.Remove(productToBeDeleted);
+            if (productToDelete is null)
+                return Json(new { success = false, message = "Product not found" });
 
-            return RedirectToAction("Index");
+            DeleteProductImage(productToDelete.ImageUrl);
+
+            _productRepository.Remove(productToDelete);
+            _productRepository.Save();
+
+            return Json(new { success = true, message = "Product deleted" });
+
         }
+        #endregion
     }
 }
