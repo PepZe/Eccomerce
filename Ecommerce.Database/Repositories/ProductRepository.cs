@@ -22,8 +22,8 @@ namespace Ecommerce.Database.Repositories
 
         public void Update(Product product)
         {
-            var prodDto = _db.Products.FirstOrDefault(p => p.Id == product.Id);
-            if(prodDto == null)
+            var prodDto = _productsSet.FirstOrDefault(p => p.Id == product.Id);
+            if(prodDto != null)
             {
                 prodDto.Title = product.Title;
                 prodDto.Description = product.Description;
@@ -40,7 +40,7 @@ namespace Ecommerce.Database.Repositories
                 }
             }
 
-            _productsSet.Update(product);
+            Save();
         }
     }
 }

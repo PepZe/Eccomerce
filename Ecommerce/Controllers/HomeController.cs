@@ -16,9 +16,15 @@ namespace Ecommerce.Controllers
             _productRepository = productRepository;
         }
 
+        public IActionResult Details(int productId)
+        {
+            var product = _productRepository.Get(p => p.Id == productId, "Category");
+            return View(product);
+        }
+
         public IActionResult Index()
         {
-            var products = _productRepository.GetAll();
+            var products = _productRepository.GetAll().ToList();
             return View(products);
         }
 

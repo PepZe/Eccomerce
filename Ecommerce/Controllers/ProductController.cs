@@ -23,7 +23,7 @@ namespace Ecommerce.Controllers
 
         public IActionResult Index()
         {
-            var products = _productRepository.GetAll("Category");
+            var products = _productRepository.GetAll("Category").ToList();
 
             return View(products);
         }
@@ -69,35 +69,45 @@ namespace Ecommerce.Controllers
                 return View(productView);
             }
 
-            if (file is not null && WEB_ROOT_PATH is not null)
+            var fileName = "";
+            try
             {
-                var productImgFolder = @"images/product";
-                var productPath = $@"{WEB_ROOT_PATH}/{productImgFolder}";
+                if (file is not null && WEB_ROOT_PATH is not null)
+                {
+                    var productImgFolder = @"images/product";
+                    var productPath = $@"{WEB_ROOT_PATH}/{productImgFolder}";
 
-                DeleteProductImage(productView.Product.ImageUrl);
+                    DeleteProductImage(productView.Product.ImageUrl);
 
-                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                    fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
 
-                using var fileStream = new FileStream(Path.Combine(productPath, fileName), FileMode.Create);
-                file.CopyTo(fileStream);
+                    using var fileStream = new FileStream(Path.Combine(productPath, fileName), FileMode.Create);
+                    file.CopyTo(fileStream);
 
 
-                productView.Product.ImageUrl = $@"{productImgFolder}/{fileName}";
+                    productView.Product.ImageUrl = $@"{productImgFolder}/{fileName}";
+                }
+
+                if (productView.Product.Id == 0)
+                {
+                    _productRepository.Add(productView.Product);
+                }
+                else
+                {
+                    _productRepository.Update(productView.Product);
+                }
+
+                _productRepository.Save();
+
+                TempData["success"] = "Product was created";
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                DeleteProductImage(fileName);
+                return View(productView);
             }
 
-            if (productView.Product.Id == 0)
-            {
-                _productRepository.Add(productView.Product);
-            }
-            else
-            {
-                _productRepository.Update(productView.Product);
-            }
-
-            _productRepository.Save();
-
-            TempData["success"] = "Product was created";
-            return RedirectToAction("Index");
         }
 
         private void DeleteProductImage(string imageUrl)
