@@ -1,3 +1,4 @@
+using Ecommerce.Domain.Interfaces;
 using Ecommerce.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
@@ -8,15 +9,24 @@ namespace Ecommerce.Areas.Customer.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IProductRepository _productRepository;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IProductRepository productRepository)
         {
             _logger = logger;
+            _productRepository = productRepository;
+        }
+
+        public IActionResult Details(int productId)
+        {
+            var product = _productRepository.Get(p => p.Id == productId, "Category");
+            return View(product);
         }
 
         public IActionResult Index()
         {
-            return View();
+            var products = _productRepository.GetAll().ToList();
+            return View(products);
         }
 
         public IActionResult Privacy()

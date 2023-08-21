@@ -8,6 +8,7 @@ namespace Ecommerce.Database.Repositories
     public class Repository<T> : IRepository<T> where T : class
     {
         private readonly DbSet<T> _dbSet;
+        private static readonly char[] separator = new char[] { ',' };
 
         public Repository(ApplicationDbContext context)
         {
@@ -19,14 +20,29 @@ namespace Ecommerce.Database.Repositories
             _dbSet.Add(entity);
         }
 
-        public T Get(Expression<Func<T, bool>> filter)
+        private IQueryable<T> AddOptionalsProperties(string optionalProperty)
         {
-            return _dbSet.FirstOrDefault(filter);
+            var query = _dbSet.AsQueryable();
+            if (!string.IsNullOrEmpty(optionalProperty))
+            {
+                foreach (var prop in optionalProperty.Split(separator, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(prop);
+                }
+            }
+
+            return query;
+        }
+        public T Get(Expression<Func<T, bool>> filter, string? includeProperties = null)
+        {
+            var query = AddOptionalsProperties(includeProperties ?? string.Empty);
+            return query.FirstOrDefault(filter);
         }
 
-        public IEnumerable<T> GetAll()
+        public IEnumerable<T> GetAll(string? includeProperties = null)
         {
-            return _dbSet.ToList();
+            var query = AddOptionalsProperties(includeProperties ?? string.Empty);
+            return query.ToList();
         }
 
         public void Remove(T entity)
