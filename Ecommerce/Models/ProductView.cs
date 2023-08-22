@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+﻿using Ecommerce.Domain.Model;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace Ecommerce.Domain.Model.ViewModel
+namespace Ecommerce.Models
 {
     public class ProductView
     {

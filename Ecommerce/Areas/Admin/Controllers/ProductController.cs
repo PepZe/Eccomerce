@@ -1,12 +1,13 @@
 ﻿using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Model;
-using Ecommerce.Domain.Model.ViewModel;
 using FileIO = System.IO.File;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Ecommerce.Models;
 
-namespace Ecommerce.Controllers
+namespace Ecommerce.Areas.Admin.Controllers
 {
+    [Area("Admin")]
     public class ProductController : Controller
     {
         private readonly IProductRepository _productRepository;
