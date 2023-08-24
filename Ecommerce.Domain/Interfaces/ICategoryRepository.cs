@@ -2,9 +2,7 @@
 
 namespace Ecommerce.Domain.Interfaces
 {
-    public interface ICategoryRepository : IRepository<Category>
+    public interface ICategoryRepository : IPersistData<Category>, IRepository<Category>
     {
-        void Update(Category category);
-        void Save();
     }
 }

@@ -5,31 +5,38 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Encodings.Web;
+using Ecommerce.Domain.Enum;
+using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Model;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.WebUtilities;
 
 namespace Ecommerce.Areas.Identity.Pages.Account
 {
     public class RegisterModel : PageModel
     {
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IUserStore<IdentityUser> _userStore;
         private readonly IUserEmailStore<IdentityUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly ICompanyRepository _companyRepository;
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
             IUserStore<IdentityUser> userStore,
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            RoleManager<IdentityRole> roleManager,
+            ICompanyRepository companyRepository)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -37,6 +44,8 @@ namespace Ecommerce.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _roleManager = roleManager;
+            _companyRepository = companyRepository;
         }
 
         /// <summary>
@@ -91,11 +100,22 @@ namespace Ecommerce.Areas.Identity.Pages.Account
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
+
+            [Required]
+            public string Name { get; set; }
+            public Address Person { get; set; }
+
+            public UserRoles RoleName { get; set; }
+            public IEnumerable<SelectListItem> RolesSelectList{ get; set; }
+            public int CompanyId { get; set; }
+            public IEnumerable<SelectListItem> CompanySelectList { get; set; }
         }
 
 
         public async Task OnGetAsync(string returnUrl = null)
         {
+            await SetUserRoles();
+            SetCompanyDropdownList();
             ReturnUrl = returnUrl;
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         }
@@ -110,7 +130,20 @@ namespace Ecommerce.Areas.Identity.Pages.Account
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+
+                user.Email = Input.Email;
+                user.City = Input.Person.City;
+                user.Name = Input.Name;
+                user.PhoneNumber = Input.Person.PhoneNumber;
+                user.PostalCode = Input.Person.PostalCode;
+                user.State = Input.Person.State;
+                user.StreetAddress = Input.Person.StreetAddress;
+
+                if (Input.RoleName == UserRoles.Company)
+                    user.CompanyId = Input.CompanyId;
+
                 var result = await _userManager.CreateAsync(user, Input.Password);
+                await _userManager.AddToRoleAsync(user, Input.RoleName.ToString());
 
                 if (result.Succeeded)
                 {
@@ -169,6 +202,34 @@ namespace Ecommerce.Areas.Identity.Pages.Account
                 throw new NotSupportedException("The default UI requires a user store with email support.");
             }
             return (IUserEmailStore<IdentityUser>)_userStore;
+        }
+
+        private async Task SetUserRoles()
+        {
+            if (!await _roleManager.RoleExistsAsync(UserRoles.Admin.ToString()))
+            {
+                await _roleManager.CreateAsync(new IdentityRole(UserRoles.Admin.ToString()));
+                await _roleManager.CreateAsync(new IdentityRole(UserRoles.Company.ToString()));
+                await _roleManager.CreateAsync(new IdentityRole(UserRoles.Customer.ToString()));
+                await _roleManager.CreateAsync(new IdentityRole(UserRoles.Employee.ToString()));
+            }
+        }
+
+        private void SetCompanyDropdownList()
+        {
+            Input = new InputModel()
+            {
+                CompanySelectList = _companyRepository.GetAll().Select(c => new SelectListItem
+                {
+                    Text = c.Name,
+                    Value = c.Id.ToString()
+                }),
+                RolesSelectList = _roleManager.Roles.Select(r => new SelectListItem
+                {
+                    Text = r.Name,
+                    Value = r.Id.ToString()
+                })
+            };
         }
     }
 }

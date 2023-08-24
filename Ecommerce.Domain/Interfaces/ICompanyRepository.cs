@@ -2,7 +2,7 @@
 
 namespace Ecommerce.Domain.Interfaces
 {
-    public interface IProductRepository : IPersistData<Product>, IRepository<Product>
+    public interface ICompanyRepository : IPersistData<Company>, IRepository<Company>
     {
     }
 }
