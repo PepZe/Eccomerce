@@ -40,7 +40,7 @@ namespace Ecommerce.Database.Repositories
                 }
             }
 
-            Save();
+            _productsSet.Update(product);
         }
     }
 }

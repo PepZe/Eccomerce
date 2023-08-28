@@ -20,9 +20,18 @@ namespace Ecommerce.Database.Repositories
             _dbSet.Add(entity);
         }
 
-        private IQueryable<T> AddOptionalsProperties(string optionalProperty)
+        private IQueryable<T> AddOptionalsProperties(string optionalProperty, bool tracking)
         {
-            var query = _dbSet.AsQueryable();
+            IQueryable<T> query;
+            if (tracking)
+            {
+                query = _dbSet.AsQueryable();
+            }
+            else
+            {
+                query = _dbSet.AsNoTracking();
+            }
+
             if (!string.IsNullOrEmpty(optionalProperty))
             {
                 foreach (var prop in optionalProperty.Split(separator, StringSplitOptions.RemoveEmptyEntries))
@@ -33,15 +42,20 @@ namespace Ecommerce.Database.Repositories
 
             return query;
         }
-        public T Get(Expression<Func<T, bool>> filter, string? includeProperties = null)
+        public T Get(Expression<Func<T, bool>> filter, string? includeProperties = null, bool tracking = false)
         {
-            var query = AddOptionalsProperties(includeProperties ?? string.Empty);
+            var query = AddOptionalsProperties(includeProperties ?? string.Empty, tracking);
             return query.FirstOrDefault(filter);
         }
 
-        public IEnumerable<T> GetAll(string? includeProperties = null)
+        public IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter = null, string? includeProperties = null, bool tracking = false)
         {
-            var query = AddOptionalsProperties(includeProperties ?? string.Empty);
+            var query = AddOptionalsProperties(includeProperties ?? string.Empty, tracking);
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+
             return query.ToList();
         }
 

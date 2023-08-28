@@ -10,4 +10,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.0-preview.7.23375.9" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Ecommerce.Domain\Ecommerce.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

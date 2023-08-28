@@ -1,3 +1,4 @@
+using Ecommerce.Common;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Model;
 using Ecommerce.Models;
@@ -42,10 +43,21 @@ namespace Ecommerce.Areas.Customer.Controllers
             var userId = claimIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
             shoppingCart.ApplicationUserId = userId;
 
+            var existentCart = _shoppingCartRepository.Get(cart => cart.ApplicationUserId == userId && cart.Product.Id == shoppingCart.ProductId, includeProperties: "Product");
+            if (existentCart != null)
+            {
+                existentCart.Count += shoppingCart.Count;
+                existentCart.Price = existentCart.CalculateCartPrice();
+                _shoppingCartRepository.Update(existentCart);
+            }
+            else
+            {
+                shoppingCart.Price = shoppingCart.CalculateCartPrice();
+                _shoppingCartRepository.Add(shoppingCart);
+            }
 
-            _shoppingCartRepository.Add(shoppingCart);
             _shoppingCartRepository.Save();
-
+            TempData["success"] = "Product added to cart";
             return RedirectToAction(nameof(Index));
         }
         public IActionResult Index()

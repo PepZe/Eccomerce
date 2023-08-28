@@ -11,5 +11,6 @@ namespace Ecommerce.Domain.Model
         public int Count { get; set; }
         public string ApplicationUserId { get; set; }
         public ApplicationUser? User { get; set; }
+        public double Price { get; set; }
     }
 }

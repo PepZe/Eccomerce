@@ -24,7 +24,7 @@ namespace Ecommerce.Areas.Admin.Controllers
 
         public IActionResult Index()
         {
-            var products = _productRepository.GetAll("Category").ToList();
+            var products = _productRepository.GetAll(includeProperties: "Category").ToList();
 
             return View(products);
         }
@@ -140,7 +140,7 @@ namespace Ecommerce.Areas.Admin.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            var products = _productRepository.GetAll("Category").ToList();
+            var products = _productRepository.GetAll(includeProperties: "Category").ToList();
             return Json(new { data = products });
         }
 
