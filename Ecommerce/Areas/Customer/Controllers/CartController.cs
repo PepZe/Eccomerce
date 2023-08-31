@@ -40,6 +40,11 @@ namespace Ecommerce.Areas.Customer.Controllers
             return View(shoppingCart);
         }
 
+        public IActionResult Summary()
+        {
+            return View();
+        }
+
         public IActionResult PlusBtn(int cartId)
         {
             var cart = _shoppingCartRepository.Get(cart => cart.Id == cartId);

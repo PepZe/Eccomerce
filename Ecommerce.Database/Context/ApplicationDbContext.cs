@@ -1,4 +1,5 @@
 ﻿using Ecommerce.Domain.Model;
+using Ecommerce.Domain.Model.Order;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,8 @@ namespace Ecommerce.Database.Context
         public DbSet<Company> Companies { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<ShoppingCart> ShoppingCarts { get; set; }
+        public DbSet<OrderHeader> OrderHeaders { get; set; }
+        public DbSet<OrderDetail> OrderDetails { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Category>().HasData(
@@ -37,7 +40,7 @@ namespace Ecommerce.Database.Context
                     Price50 = 85,
                     Price100 = 80,
                     CategoryId = 1,
-                    ImageUrl =""
+                    ImageUrl = ""
                 },
                 new Product
                 {
