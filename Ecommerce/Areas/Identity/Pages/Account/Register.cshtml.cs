@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.WebUtilities;
@@ -105,9 +106,7 @@ namespace Ecommerce.Areas.Identity.Pages.Account
             public string Name { get; set; }
             public Address Address { get; set; }
             public string PhoneNumber { get; set; }
-
             public UserRoles RoleName { get; set; }
-            public IEnumerable<SelectListItem> RolesSelectList { get; set; }
             public int CompanyId { get; set; }
             public IEnumerable<SelectListItem> CompanySelectList { get; set; }
         }
@@ -132,13 +131,17 @@ namespace Ecommerce.Areas.Identity.Pages.Account
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
 
+                user.Address = new Address()
+                {
+                    City = Input.Address.City,
+                    PostalCode = Input.Address.PostalCode,
+                    State = Input.Address.State,
+                    StreetAddress = Input.Address.StreetAddress
+                };
                 user.Email = Input.Email;
-                user.Address.City = Input.Address.City;
                 user.Name = Input.Name;
                 user.PhoneNumber = Input.PhoneNumber;
-                user.Address.PostalCode = Input.Address.PostalCode;
-                user.Address.State = Input.Address.State;
-                user.Address.StreetAddress = Input.Address.StreetAddress;
+
 
                 if (Input.RoleName == UserRoles.Company)
                     user.CompanyId = Input.CompanyId;
@@ -224,11 +227,6 @@ namespace Ecommerce.Areas.Identity.Pages.Account
                 {
                     Text = c.Name,
                     Value = c.Id.ToString()
-                }),
-                RolesSelectList = _roleManager.Roles.Select(r => new SelectListItem
-                {
-                    Text = r.Name,
-                    Value = r.Id.ToString()
                 })
             };
         }

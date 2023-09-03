@@ -1,4 +1,5 @@
 using Ecommerce.Common;
+using Ecommerce.Database.Repositories;
 using Ecommerce.Domain.Interfaces;
 using Ecommerce.Domain.Model;
 using Ecommerce.Models;
@@ -52,7 +53,8 @@ namespace Ecommerce.Areas.Customer.Controllers
             }
             else
             {
-                shoppingCart.Price = shoppingCart.CalculateCartPrice();
+                var product = _productRepository.Get(p => p.Id == shoppingCart.ProductId);
+                shoppingCart.Price = shoppingCart.CalculateCartPrice(product);
                 _shoppingCartRepository.Add(shoppingCart);
             }
 

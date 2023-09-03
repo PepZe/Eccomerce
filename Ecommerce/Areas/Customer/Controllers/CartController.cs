@@ -47,7 +47,7 @@ namespace Ecommerce.Areas.Customer.Controllers
 
         public IActionResult PlusBtn(int cartId)
         {
-            var cart = _shoppingCartRepository.Get(cart => cart.Id == cartId);
+            var cart = _shoppingCartRepository.Get(cart => cart.Id == cartId, includeProperties: "Product");
             cart.Count += 1;
 
             cart.Price = cart.CalculateCartPrice();
@@ -58,7 +58,7 @@ namespace Ecommerce.Areas.Customer.Controllers
         }
         public IActionResult MinusBtn(int cartId)
         {
-            var cart = _shoppingCartRepository.Get(cart => cart.Id == cartId);
+            var cart = _shoppingCartRepository.Get(cart => cart.Id == cartId, includeProperties: "Product");
             if (cart.Count <= 1)
                 _shoppingCartRepository.Remove(cart);
             else

@@ -4,19 +4,22 @@ namespace Ecommerce.Common
 {
     public static class PriceCalculator
     {
-        public static double CalculateCartPrice(this ShoppingCart cart)
+        public static double CalculateCartPrice(this ShoppingCart cart, Product product = null)
         {
+            if (product == null)
+                product = cart.Product;
+
             if (cart.Count <= 50)
             {
-                return cart.Product.Price;
+                return product.Price;
             }
             else if (cart.Count > 100)
             {
-                return cart.Product.Price100;
+                return product.Price100;
             }
             else
             {
-                return cart.Product.Price50;
+                return product.Price50;
             }
         }
     }
